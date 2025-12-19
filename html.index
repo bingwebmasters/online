@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel CNPJ</title>
+
+<style>
+:root {
+    --bg-card: rgba(255,255,255,0.85);
+    --text: #000;
+}
+
+body.escuro {
+    --bg-card: rgba(0,0,0,0.75);
+    --text: #fff;
+}
+
+* {
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(120deg,#1e3c72,#2a5298);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.4s;
+}
+
+body.escuro {
+    background: linear-gradient(120deg,#000,#434343);
+}
+
+.card {
+    width: 420px;
+    padding: 20px;
+    background: var(--bg-card);
+    color: var(--text);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+    text-align: center;
+}
+
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+textarea {
+    height: 200px;
+    resize: none;
+}
+
+button {
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Consulta CNPJ</h2>
+
+    <input id="cnpj" value="48.851.488/0001-97">
+
+    <div class="grid">
+        <button onclick="consultar()">Consultar</button>
+        <button onclick="tema()">Tema</button>
+        <button onclick="limpar()">Limpar</button>
+        <button onclick="copiar()">Copiar</button>
+    </div>
+
+    <textarea id="saida" placeholder="Dados do CNPJ..."></textarea>
+</div>
+
+<script>
+function limparCNPJ(c) {
+    return c.replace(/\D/g,'');
+}
+
+async function consultar() {
+    const cnpj = limparCNPJ(document.getElementById("cnpj").value);
+    const saida = document.getElementById("saida");
+
+    if (cnpj.length !== 14) {
+        alert("CNPJ inválido");
+        return;
+    }
+
+    saida.value = "Consultando...";
+
+    try {
+        const r = await fetch("https://brasilapi.com.br/api/cnpj/v1/" + cnpj);
+        const d = await r.json();
+
+        saida.value =
+`Razão Social: ${d.razao_social}
+Fantasia: ${d.nome_fantasia}
+Situação: ${d.descricao_situacao_cadastral}
+
+Endereço:
+${d.logradouro}, ${d.numero}
+${d.municipio}/${d.uf}
+
+Telefone: ${d.ddd_telefone_1 || "N/I"}
+Email: ${d.email || "N/I"}`;
+    } catch {
+        saida.value = "Erro na consulta";
+    }
+}
+
+function limpar() {
+    document.getElementById("cnpj").value = "";
+    document.getElementById("saida").value = "";
+}
+
+function copiar() {
+    const t = document.getElementById("saida");
+    t.select();
+    document.execCommand("copy");
+    alert("Copiado!");
+}
+
+function tema() {
+    document.body.classList.toggle("escuro");
+}
+</script>
+
+</body>
+</html>
